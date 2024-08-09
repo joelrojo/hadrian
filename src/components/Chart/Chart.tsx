@@ -6,6 +6,9 @@ import ReactFlow, {
   addEdge,
   Handle,
   Position,
+  MiniMap,
+  Controls,
+  Background,
 } from "reactflow";
 
 import "reactflow/dist/style.css";
@@ -106,7 +109,11 @@ export const Chart = () => {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           nodeTypes={nodeTypes}
-        />
+        >
+          <MiniMap />
+          <Controls />
+          <Background gap={16} />
+        </ReactFlow>
       </div>
     </div>
   );
