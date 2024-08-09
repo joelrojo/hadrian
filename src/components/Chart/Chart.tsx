@@ -274,7 +274,82 @@ export const Chart = () => {
   const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
 
   const removeNode = (nodeId) => {
-    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setNodes((nds) => {
+      // Filter out the node being removed
+      let updatedNodes = nds.filter((node) => node.id !== nodeId);
+      const remainingEdges = edges.filter(
+        (edge) => edge.source !== nodeId && edge.target !== nodeId
+      );
+
+      // Function to deactivate all nodes downstream from a given node
+      const deactivateDownstreamNodes = (currentNodeId) => {
+        const downstreamNodes = remainingEdges
+          .filter((edge) => edge.source === currentNodeId)
+          .map((edge) => edge.target);
+
+        downstreamNodes.forEach((downstreamNodeId) => {
+          updatedNodes = updatedNodes.map((node) => {
+            if (node.id === downstreamNodeId) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  active: false,
+                  completed: false,
+                },
+              };
+            }
+            return node;
+          });
+          deactivateDownstreamNodes(downstreamNodeId);
+        });
+      };
+
+      // Deactivate all nodes downstream of the removed node
+      deactivateDownstreamNodes(nodeId);
+
+      // Find the first node in the workflow (no incoming edges)
+      const firstNodeId = updatedNodes.find((node) => {
+        return !remainingEdges.some((edge) => edge.target === node.id);
+      })?.id;
+
+      // Re-evaluate all remaining nodes
+      updatedNodes = updatedNodes.map((node) => {
+        const incomingEdges = remainingEdges.filter(
+          (edge) => edge.target === node.id
+        );
+
+        // Only activate the first node in the entire workflow
+        if (node.id === firstNodeId) {
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              active: true,
+              completed: false,
+            },
+          };
+        }
+
+        // Check if all source nodes are completed before activating this node
+        const allSourcesCompleted = incomingEdges.every((edge) => {
+          const sourceNode = updatedNodes.find((n) => n.id === edge.source);
+          return sourceNode && sourceNode.data.completed;
+        });
+
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            active: allSourcesCompleted && !node.data.completed,
+          },
+        };
+      });
+
+      return updatedNodes;
+    });
+
+    // Remove the edges connected to the removed node
     setEdges((eds) =>
       eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
     );
