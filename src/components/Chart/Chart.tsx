@@ -17,14 +17,14 @@ import ReactFlow, {
 } from "reactflow";
 
 import "reactflow/dist/style.css";
-import { FiX } from "react-icons/fi";
+import { FiTrash, FiCheck } from "react-icons/fi";
 
 const CustomNode = ({
   id,
   data,
   removeNode,
   updateNodeLabel,
-  markNodeComplete,
+  toggleNodeComplete,
 }) => {
   const [isEditing, setIsEditing] = useState(data.isEditing || false);
   const [label, setLabel] = useState(data.label);
@@ -52,9 +52,9 @@ const CustomNode = ({
 
   const handleChange = (e) => setLabel(e.target.value);
 
-  const handleNodeClick = () => {
-    if (data.active && !data.completed) {
-      markNodeComplete(id);
+  const handleToggleComplete = () => {
+    if (data.active || data.completed) {
+      toggleNodeComplete(id);
     }
   };
 
@@ -67,7 +67,6 @@ const CustomNode = ({
           ? "bg-yellow-300"
           : "bg-white"
       }`}
-      onClick={handleNodeClick}
     >
       {isEditing ? (
         <input
@@ -87,10 +86,27 @@ const CustomNode = ({
         </div>
       )}
       <div
-        onClick={() => removeNode(id)}
-        className="group hover:border-red-500 cursor-pointer absolute -top-2 -right-2 rounded-full bg-white border border-gray-500 w-4 h-4 flex items-center justify-center"
+        onClick={handleToggleComplete}
+        className={`group cursor-pointer absolute -top-3.5 -right-3.5 rounded-full bg-white border w-6 h-6 flex items-center justify-center
+          ${
+            data.completed
+              ? "hover:border-green-500 border-green-500"
+              : "hover:border-gray-500 border-gray-500"
+          }`}
       >
-        <FiX className="text-gray-500 cursor-pointer text-xs group-hover:text-red-500" />
+        <FiCheck
+          className={`text-xs ${
+            data.completed
+              ? "text-green-500 group-hover:text-green-500"
+              : "text-gray-500 group-hover:text-gray-900"
+          }`}
+        />
+      </div>
+      <div
+        onClick={() => removeNode(id)}
+        className="group hover:border-red-500 cursor-pointer absolute -bottom-3.5 -right-3.5 rounded-full bg-white border border-gray-500 w-6 h-6 flex items-center justify-center"
+      >
+        <FiTrash className="text-gray-500 cursor-pointer text-xs group-hover:text-red-500" />
       </div>
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
@@ -127,37 +143,50 @@ export const Chart = () => {
     );
   };
 
-  const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
-
-  const markNodeComplete = useCallback(
+  const toggleNodeComplete = useCallback(
     (id) => {
-      console.log(`Completing node ${id}`);
+      console.log(`Toggling completion of node ${id}`);
 
       setNodes((nds) => {
-        // Mark the clicked node as completed
         let updatedNodes = nds.map((node) => {
           if (node.id === id) {
-            console.log(`Node ${id} completed`);
+            const isCompleted = node.data.completed;
+            console.log(
+              `Node ${id} is currently ${isCompleted ? "completed" : "active"}`
+            );
+
+            // Toggle the completion state
             return {
               ...node,
-              data: { ...node.data, completed: true, active: false },
+              data: {
+                ...node.data,
+                completed: !isCompleted,
+                active: isCompleted, // Re-activate if toggled off
+              },
             };
           }
           return node;
         });
 
-        // Find nodes connected from the completed node (outgoing connections)
-        const outgoingNodes = edges
+        // Manage connected nodes
+        const connectedNodes = edges
           .filter((edge) => edge.source === id)
           .map((edge) => edge.target);
 
-        console.log(`Outgoing nodes from ${id}:`, outgoingNodes);
+        console.log(`Connected nodes from ${id}:`, connectedNodes);
 
-        // Activate nodes that are connected to the completed node
         updatedNodes = updatedNodes.map((node) => {
-          if (outgoingNodes.includes(node.id)) {
-            console.log(`Activating node ${node.id}`);
-            return { ...node, data: { ...node.data, active: true } };
+          if (connectedNodes.includes(node.id)) {
+            console.log(
+              `Updating connected node ${node.id} based on completion of ${id}`
+            );
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                active: !node.data.completed && !node.data.active, // Activate only if not completed
+              },
+            };
           }
           return node;
         });
@@ -165,8 +194,10 @@ export const Chart = () => {
         return updatedNodes;
       });
     },
-    [edges] // Ensure that the latest edges are always used
+    [edges]
   );
+
+  const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
 
   const removeNode = (nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
@@ -182,11 +213,11 @@ export const Chart = () => {
           {...props}
           removeNode={removeNode}
           updateNodeLabel={updateNodeLabel}
-          markNodeComplete={markNodeComplete}
+          toggleNodeComplete={toggleNodeComplete}
         />
       ),
     }),
-    [markNodeComplete] // Ensure that the latest markNodeComplete is passed down
+    [toggleNodeComplete]
   );
 
   return (
