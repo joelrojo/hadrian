@@ -1,6 +1,5 @@
 import React, { useMemo, useState, useLayoutEffect, useRef } from "react";
 import ReactFlow, {
-  MarkerType,
   useEdgesState,
   useNodesState,
   addEdge,
@@ -13,10 +12,6 @@ import ReactFlow, {
 
 import "reactflow/dist/style.css";
 import { FiX } from "react-icons/fi";
-
-// Initial nodes and edges as empty arrays
-const initialNodes = [];
-const initialEdges = [];
 
 const CustomNode = ({ id, data, removeNode, updateNodeLabel }) => {
   const [isEditing, setIsEditing] = useState(data.isEditing || false);
@@ -77,8 +72,8 @@ const CustomNode = ({ id, data, removeNode, updateNodeLabel }) => {
 };
 
 export const Chart = () => {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
   const addNode = () => {
     const newNode = {
