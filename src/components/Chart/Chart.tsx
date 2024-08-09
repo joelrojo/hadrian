@@ -14,41 +14,9 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { FiX } from "react-icons/fi";
 
-const initialNodes = [
-  {
-    id: "1",
-    position: { x: 0, y: 0 },
-    data: { label: "1" },
-    type: "customNode",
-  },
-  {
-    id: "2",
-    position: { x: 0, y: 100 },
-    data: { label: "2" },
-    type: "customNode",
-  },
-  {
-    id: "3",
-    position: { x: 0, y: 200 },
-    data: { label: "3" },
-    type: "customNode",
-  },
-];
-
-const initialEdges = [
-  {
-    id: "e1-2",
-    source: "1",
-    target: "2",
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-  {
-    id: "e2-3",
-    source: "2",
-    target: "3",
-    markerEnd: { type: MarkerType.ArrowClosed },
-  },
-];
+// Initial nodes and edges as empty arrays
+const initialNodes = [];
+const initialEdges = [];
 
 const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -100,8 +68,8 @@ export const Chart = () => {
   const addNode = () => {
     const newNode = {
       id: (nodes.length + 1).toString(),
-      position: { x: 0, y: nodes.length * 100 },
-      data: { label: (nodes.length + 1).toString() },
+      position: { x: 20, y: nodes.length * 100 + 20 },
+      data: { label: "Double click to edit text" }, // Default label for new nodes
       type: "customNode",
     };
     setNodes((nds) => [...nds, newNode]);
