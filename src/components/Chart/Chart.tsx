@@ -19,15 +19,19 @@ const initialNodes = [];
 const initialEdges = [];
 
 const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(data.isEditing || false);
   const [label, setLabel] = useState(data.label);
 
   const handleDoubleClick = () => setIsEditing(true);
+
   const inputSubmit = () => {
     setIsEditing(false);
-    if (!label) return; // handle empty label case
-    updateNodeLabel(id, label);
+    if (!label.trim()) {
+      setLabel("Double click to edit this text");
+    }
+    updateNodeLabel(id, label.trim() || "Double click to edit");
   };
+
   const handleChange = (e) => setLabel(e.target.value);
 
   return (
@@ -46,7 +50,7 @@ const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
           className="text-lg font-bold text-gray-900 cursor-pointer"
           onDoubleClick={handleDoubleClick}
         >
-          {data.label}
+          {label}
         </div>
       )}
       <div
@@ -69,7 +73,7 @@ export const Chart = () => {
     const newNode = {
       id: (nodes.length + 1).toString(),
       position: { x: 20, y: nodes.length * 100 + 20 },
-      data: { label: "Double click to edit text" }, // Default label for new nodes
+      data: { label: "", isEditing: true }, // Start with an empty label and editing mode enabled
       type: "customNode",
     };
     setNodes((nds) => [...nds, newNode]);
