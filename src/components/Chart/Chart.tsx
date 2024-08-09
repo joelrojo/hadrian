@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import ReactFlow, {
   MarkerType,
   useEdgesState,
@@ -50,10 +50,37 @@ const initialEdges = [
   },
 ];
 
-const CustomNode = ({ id, data, selected, removeNode }) => {
+const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [label, setLabel] = useState(data.label);
+
+  const handleDoubleClick = () => setIsEditing(true);
+  const inputSubmit = () => {
+    setIsEditing(false);
+    if (!label) return; // handle empty label case
+    updateNodeLabel(id, label);
+  };
+  const handleChange = (e) => setLabel(e.target.value);
+
   return (
     <div className="p-2 bg-white border rounded shadow-lg relative w-40">
-      <div className="text-lg font-bold text-gray-900">{data.label}</div>
+      {isEditing ? (
+        <input
+          className="w-full bg-white p-1 text-lg font-bold text-gray-900 border-b-2 border-gray-300 focus:border-blue-500 focus:outline-none mr-3"
+          value={label}
+          onChange={handleChange}
+          onBlur={inputSubmit}
+          onKeyDown={(e) => e.key === "Enter" && inputSubmit()}
+          autoFocus
+        />
+      ) : (
+        <div
+          className="text-lg font-bold text-gray-900 cursor-pointer"
+          onDoubleClick={handleDoubleClick}
+        >
+          {data.label}
+        </div>
+      )}
       <div onClick={() => removeNode(id)}>
         <FiX className="absolute top-3 right-1 text-gray-500 cursor-pointer hover:text-red-500" />
       </div>
@@ -77,6 +104,16 @@ export const Chart = () => {
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const updateNodeLabel = (id, newLabel) => {
+    setNodes((nds) =>
+      nds.map((node) =>
+        node.id === id
+          ? { ...node, data: { ...node.data, label: newLabel } }
+          : node
+      )
+    );
+  };
+
   const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
 
   const removeNode = (nodeId) => {
@@ -88,7 +125,13 @@ export const Chart = () => {
 
   const nodeTypes = useMemo(
     () => ({
-      customNode: (props) => <CustomNode {...props} removeNode={removeNode} />,
+      customNode: (props) => (
+        <CustomNode
+          {...props}
+          removeNode={removeNode}
+          updateNodeLabel={updateNodeLabel}
+        />
+      ),
     }),
     []
   );
