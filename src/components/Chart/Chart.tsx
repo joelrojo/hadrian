@@ -81,8 +81,11 @@ const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
           {data.label}
         </div>
       )}
-      <div onClick={() => removeNode(id)}>
-        <FiX className="absolute top-3 right-1 text-gray-500 cursor-pointer hover:text-red-500" />
+      <div
+        onClick={() => removeNode(id)}
+        className="group hover:border-red-500 cursor-pointer absolute -top-2 -right-2 rounded-full bg-white border border-gray-500 w-4 h-4 flex items-center justify-center"
+      >
+        <FiX className="text-gray-500 cursor-pointer text-xs group-hover:text-red-500" />
       </div>
       <Handle type="target" position={Position.Top} />
       <Handle type="source" position={Position.Bottom} />
