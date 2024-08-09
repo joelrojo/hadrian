@@ -4,6 +4,7 @@ import React, {
   useLayoutEffect,
   useRef,
   useCallback,
+  useEffect,
 } from "react";
 import ReactFlow, {
   useEdgesState,
@@ -18,6 +19,9 @@ import ReactFlow, {
 
 import "reactflow/dist/style.css";
 import { FiTrash, FiCheck } from "react-icons/fi";
+
+// Key for localStorage
+const LOCAL_STORAGE_KEY = "reactflow-workflow";
 
 const CustomNode = ({
   id,
@@ -117,6 +121,24 @@ const CustomNode = ({
 export const Chart = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
+  // Load from localStorage when the component mounts
+  useEffect(() => {
+    const savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
+    if (savedData) {
+      setNodes(savedData.nodes || []);
+      setEdges(savedData.edges || []);
+    }
+    setInitialLoadComplete(true); // Mark the initial load as complete
+  }, []);
+
+  // Save nodes and edges to localStorage whenever they change, but only after the initial load
+  useEffect(() => {
+    if (initialLoadComplete) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ nodes, edges }));
+    }
+  }, [nodes, edges, initialLoadComplete]);
 
   const addNode = () => {
     const newNode = {
@@ -208,6 +230,12 @@ export const Chart = () => {
     );
   };
 
+  const resetWorkflow = () => {
+    setNodes([]);
+    setEdges([]);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+  };
+
   const nodeTypes = useMemo(
     () => ({
       customNode: (props) => (
@@ -230,6 +258,12 @@ export const Chart = () => {
           className="absolute top-4 left-4 px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
         >
           Add Node
+        </button>
+        <button
+          onClick={resetWorkflow}
+          className="absolute top-4 right-4 px-4 py-2 bg-red-500 text-white rounded shadow hover:bg-red-600"
+        >
+          Reset Workflow
         </button>
         <ReactFlow
           nodes={nodes}
