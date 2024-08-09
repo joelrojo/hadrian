@@ -37,6 +37,17 @@ export const Chart = () => {
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const removeNode = (nodeId) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    setEdges((eds) =>
+      eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId)
+    );
+  };
+
+  const onNodeClick = (event, node) => {
+    removeNode(node.id);
+  };
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="w-[80vw] h-[80vh] border border-gray-300">
@@ -51,6 +62,7 @@ export const Chart = () => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
+          onNodeClick={onNodeClick} // Add onNodeClick event handler
         />
       </div>
     </div>
