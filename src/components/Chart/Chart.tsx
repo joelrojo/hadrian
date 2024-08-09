@@ -1,5 +1,10 @@
 import React from "react";
-import ReactFlow, { MarkerType, useEdgesState, useNodesState } from "reactflow";
+import ReactFlow, {
+  MarkerType,
+  useEdgesState,
+  useNodesState,
+  addEdge,
+} from "reactflow";
 
 import "reactflow/dist/style.css";
 
@@ -37,6 +42,8 @@ export const Chart = () => {
     setNodes((nds) => [...nds, newNode]);
   };
 
+  const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
+
   const removeNode = (nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) =>
@@ -62,7 +69,8 @@ export const Chart = () => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick} // Add onNodeClick event handler
+          onNodeClick={onNodeClick}
+          onConnect={onConnect} // Add the onConnect event handler
         />
       </div>
     </div>
