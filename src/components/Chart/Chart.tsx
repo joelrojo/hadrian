@@ -29,6 +29,7 @@ const CustomNode = ({
   removeNode,
   updateNodeLabel,
   toggleNodeComplete,
+  makeNodesUneditable,
 }) => {
   const [isEditing, setIsEditing] = useState(data.isEditing || false);
   const [label, setLabel] = useState(data.label);
@@ -48,10 +49,11 @@ const CustomNode = ({
 
   const inputSubmit = () => {
     setIsEditing(false);
+    makeNodesUneditable();
     if (!label.trim()) {
-      setLabel("Double click to edit this text");
+      setLabel("Double click to edit text");
     }
-    updateNodeLabel(id, label.trim() || "Double click to edit");
+    updateNodeLabel(id, label.trim() || "Double click to edit text");
   };
 
   const handleChange = (e) => setLabel(e.target.value);
@@ -171,6 +173,11 @@ export const Chart = () => {
       )
     );
   };
+  const makeNodesUneditable = () => {
+    setNodes((nds) =>
+      nds.map((node) => ({ ...node, data: { ...node.data, isEditing: false } }))
+    );
+  };
 
   const toggleNodeComplete = useCallback(
     (id) => {
@@ -251,6 +258,7 @@ export const Chart = () => {
           removeNode={removeNode}
           updateNodeLabel={updateNodeLabel}
           toggleNodeComplete={toggleNodeComplete}
+          makeNodesUneditable={makeNodesUneditable}
         />
       ),
     }),
