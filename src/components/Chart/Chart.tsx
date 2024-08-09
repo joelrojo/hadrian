@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useLayoutEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+} from "react";
 import ReactFlow, {
   useEdgesState,
   useNodesState,
@@ -13,7 +19,13 @@ import ReactFlow, {
 import "reactflow/dist/style.css";
 import { FiX } from "react-icons/fi";
 
-const CustomNode = ({ id, data, removeNode, updateNodeLabel }) => {
+const CustomNode = ({
+  id,
+  data,
+  removeNode,
+  updateNodeLabel,
+  markNodeComplete,
+}) => {
   const [isEditing, setIsEditing] = useState(data.isEditing || false);
   const [label, setLabel] = useState(data.label);
   const inputRef = useRef(null);
@@ -40,8 +52,23 @@ const CustomNode = ({ id, data, removeNode, updateNodeLabel }) => {
 
   const handleChange = (e) => setLabel(e.target.value);
 
+  const handleNodeClick = () => {
+    if (data.active && !data.completed) {
+      markNodeComplete(id);
+    }
+  };
+
   return (
-    <div className="p-2 bg-white border rounded shadow-lg relative w-40">
+    <div
+      className={`p-2 border rounded shadow-lg relative w-40 ${
+        data.completed
+          ? "bg-green-300"
+          : data.active
+          ? "bg-yellow-300"
+          : "bg-white"
+      }`}
+      onClick={handleNodeClick}
+    >
       {isEditing ? (
         <input
           ref={inputRef}
@@ -79,7 +106,12 @@ export const Chart = () => {
     const newNode = {
       id: (nodes.length + 1).toString(),
       position: { x: 20, y: nodes.length * 100 + 20 },
-      data: { label: "", isEditing: true }, // Start with an empty label and editing mode enabled
+      data: {
+        label: "",
+        isEditing: true,
+        completed: false,
+        active: nodes.length === 0,
+      }, // The first node is active
       type: "customNode",
     };
     setNodes((nds) => [...nds, newNode]);
@@ -97,6 +129,45 @@ export const Chart = () => {
 
   const onConnect = (params) => setEdges((eds) => addEdge(params, eds));
 
+  const markNodeComplete = useCallback(
+    (id) => {
+      console.log(`Completing node ${id}`);
+
+      setNodes((nds) => {
+        // Mark the clicked node as completed
+        let updatedNodes = nds.map((node) => {
+          if (node.id === id) {
+            console.log(`Node ${id} completed`);
+            return {
+              ...node,
+              data: { ...node.data, completed: true, active: false },
+            };
+          }
+          return node;
+        });
+
+        // Find nodes connected from the completed node (outgoing connections)
+        const outgoingNodes = edges
+          .filter((edge) => edge.source === id)
+          .map((edge) => edge.target);
+
+        console.log(`Outgoing nodes from ${id}:`, outgoingNodes);
+
+        // Activate nodes that are connected to the completed node
+        updatedNodes = updatedNodes.map((node) => {
+          if (outgoingNodes.includes(node.id)) {
+            console.log(`Activating node ${node.id}`);
+            return { ...node, data: { ...node.data, active: true } };
+          }
+          return node;
+        });
+
+        return updatedNodes;
+      });
+    },
+    [edges] // Ensure that the latest edges are always used
+  );
+
   const removeNode = (nodeId) => {
     setNodes((nds) => nds.filter((node) => node.id !== nodeId));
     setEdges((eds) =>
@@ -111,10 +182,11 @@ export const Chart = () => {
           {...props}
           removeNode={removeNode}
           updateNodeLabel={updateNodeLabel}
+          markNodeComplete={markNodeComplete}
         />
       ),
     }),
-    []
+    [markNodeComplete] // Ensure that the latest markNodeComplete is passed down
   );
 
   return (
