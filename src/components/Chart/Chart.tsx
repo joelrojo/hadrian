@@ -199,34 +199,70 @@ export const Chart = () => {
           return node;
         });
 
-        // Manage connected nodes
-        const connectedNodes = edges
-          .filter((edge) => edge.source === id)
-          .map((edge) => edge.target);
+        // Handle nodes activation and deactivation
+        const toggleDependencies = (sourceId, updatedNodes) => {
+          const connectedNodes = edges
+            .filter((edge) => edge.source === sourceId)
+            .map((edge) => edge.target);
 
-        updatedNodes = updatedNodes.map((node) => {
-          if (connectedNodes.includes(node.id)) {
-            // Check if all source nodes are completed before activating this node
-            const allSourcesCompleted = edges
-              .filter((edge) => edge.target === node.id)
-              .every((edge) =>
-                updatedNodes.find(
-                  (n) => n.id === edge.source && n.data.completed
-                )
-              );
+          return updatedNodes.map((node) => {
+            if (connectedNodes.includes(node.id)) {
+              // Check if all source nodes are completed before activating this node
+              const allSourcesCompleted = edges
+                .filter((edge) => edge.target === node.id)
+                .every((edge) =>
+                  updatedNodes.find(
+                    (n) => n.id === edge.source && n.data.completed
+                  )
+                );
 
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                active:
-                  allSourcesCompleted &&
-                  !node.data.completed &&
-                  !node.data.active, // Activate only if not completed and all prerequisites are met
-              },
-            };
-          }
-          return node;
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  active: allSourcesCompleted && !node.data.completed,
+                },
+              };
+            }
+            return node;
+          });
+        };
+
+        // Toggle the dependencies starting from the changed node
+        updatedNodes = toggleDependencies(id, updatedNodes);
+
+        // If the node is being toggled off, deactivate dependent nodes recursively
+        if (!updatedNodes.find((node) => node.id === id).data.completed) {
+          const deactivateDependencies = (sourceId) => {
+            const connectedNodes = edges
+              .filter((edge) => edge.source === sourceId)
+              .map((edge) => edge.target);
+
+            updatedNodes = updatedNodes.map((node) => {
+              if (connectedNodes.includes(node.id)) {
+                return {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    active: false,
+                    completed: false,
+                  },
+                };
+              }
+              return node;
+            });
+
+            connectedNodes.forEach((connectedNodeId) =>
+              deactivateDependencies(connectedNodeId)
+            );
+          };
+
+          deactivateDependencies(id);
+        }
+
+        // Activate dependencies again based on the new state
+        edges.forEach((edge) => {
+          updatedNodes = toggleDependencies(edge.source, updatedNodes);
         });
 
         return updatedNodes;
