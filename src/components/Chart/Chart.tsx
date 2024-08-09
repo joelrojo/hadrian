@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useLayoutEffect, useRef } from "react";
 import ReactFlow, {
   MarkerType,
   useEdgesState,
@@ -18,9 +18,20 @@ import { FiX } from "react-icons/fi";
 const initialNodes = [];
 const initialEdges = [];
 
-const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
+const CustomNode = ({ id, data, removeNode, updateNodeLabel }) => {
   const [isEditing, setIsEditing] = useState(data.isEditing || false);
   const [label, setLabel] = useState(data.label);
+  const inputRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (isEditing) {
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 50); // QUICK HACK: Wait for the node to render before focusing, would dig deeper with more time
+    }
+  }, [isEditing]);
 
   const handleDoubleClick = () => setIsEditing(true);
 
@@ -38,12 +49,12 @@ const CustomNode = ({ id, data, selected, removeNode, updateNodeLabel }) => {
     <div className="p-2 bg-white border rounded shadow-lg relative w-40">
       {isEditing ? (
         <input
+          ref={inputRef}
           className="w-full bg-white p-1 text-lg font-bold text-gray-900 border-b-2 border-gray-300 focus:border-blue-500 focus:outline-none mr-3"
           value={label}
           onChange={handleChange}
           onBlur={inputSubmit}
           onKeyDown={(e) => e.key === "Enter" && inputSubmit()}
-          autoFocus
         />
       ) : (
         <div
