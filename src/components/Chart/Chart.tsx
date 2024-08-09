@@ -127,7 +127,14 @@ export const Chart = () => {
   useEffect(() => {
     const savedData = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
     if (savedData) {
-      setNodes(savedData.nodes || []);
+      const loadedNodes = (savedData.nodes || []).map((node) => ({
+        ...node,
+        data: {
+          ...node.data,
+          isEditing: false, // Ensure no nodes are in editing mode when loaded
+        },
+      }));
+      setNodes(loadedNodes);
       setEdges(savedData.edges || []);
     }
     setInitialLoadComplete(true); // Mark the initial load as complete
