@@ -1,17 +1,35 @@
-import React from "react";
+import React, { useMemo } from "react";
 import ReactFlow, {
   MarkerType,
   useEdgesState,
   useNodesState,
   addEdge,
+  Handle,
+  Position,
 } from "reactflow";
 
 import "reactflow/dist/style.css";
+import { FiX } from "react-icons/fi";
 
 const initialNodes = [
-  { id: "1", position: { x: 0, y: 0 }, data: { label: "1" } },
-  { id: "2", position: { x: 0, y: 100 }, data: { label: "2" } },
-  { id: "3", position: { x: 0, y: 200 }, data: { label: "3" } },
+  {
+    id: "1",
+    position: { x: 0, y: 0 },
+    data: { label: "1" },
+    type: "customNode",
+  },
+  {
+    id: "2",
+    position: { x: 0, y: 100 },
+    data: { label: "2" },
+    type: "customNode",
+  },
+  {
+    id: "3",
+    position: { x: 0, y: 200 },
+    data: { label: "3" },
+    type: "customNode",
+  },
 ];
 
 const initialEdges = [
@@ -29,6 +47,19 @@ const initialEdges = [
   },
 ];
 
+const CustomNode = ({ id, data, selected, removeNode }) => {
+  return (
+    <div className="p-2 bg-white border rounded shadow-lg relative w-40">
+      <div className="text-lg font-bold text-gray-900">{data.label}</div>
+      <div onClick={() => removeNode(id)}>
+        <FiX className="absolute top-3 right-1 text-gray-500 cursor-pointer hover:text-red-500" />
+      </div>
+      <Handle type="target" position={Position.Top} />
+      <Handle type="source" position={Position.Bottom} />
+    </div>
+  );
+};
+
 export const Chart = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -38,6 +69,7 @@ export const Chart = () => {
       id: (nodes.length + 1).toString(),
       position: { x: 0, y: nodes.length * 100 },
       data: { label: (nodes.length + 1).toString() },
+      type: "customNode",
     };
     setNodes((nds) => [...nds, newNode]);
   };
@@ -51,9 +83,12 @@ export const Chart = () => {
     );
   };
 
-  const onNodeClick = (event, node) => {
-    removeNode(node.id);
-  };
+  const nodeTypes = useMemo(
+    () => ({
+      customNode: (props) => <CustomNode {...props} removeNode={removeNode} />,
+    }),
+    []
+  );
 
   return (
     <div className="flex justify-center items-center h-screen">
@@ -69,8 +104,8 @@ export const Chart = () => {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onNodeClick={onNodeClick}
-          onConnect={onConnect} // Add the onConnect event handler
+          onConnect={onConnect}
+          nodeTypes={nodeTypes}
         />
       </div>
     </div>
