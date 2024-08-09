@@ -145,15 +145,10 @@ export const Chart = () => {
 
   const toggleNodeComplete = useCallback(
     (id) => {
-      console.log(`Toggling completion of node ${id}`);
-
       setNodes((nds) => {
         let updatedNodes = nds.map((node) => {
           if (node.id === id) {
             const isCompleted = node.data.completed;
-            console.log(
-              `Node ${id} is currently ${isCompleted ? "completed" : "active"}`
-            );
 
             // Toggle the completion state
             return {
@@ -173,13 +168,8 @@ export const Chart = () => {
           .filter((edge) => edge.source === id)
           .map((edge) => edge.target);
 
-        console.log(`Connected nodes from ${id}:`, connectedNodes);
-
         updatedNodes = updatedNodes.map((node) => {
           if (connectedNodes.includes(node.id)) {
-            console.log(
-              `Updating connected node ${node.id} based on completion of ${id}`
-            );
             return {
               ...node,
               data: {
