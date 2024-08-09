@@ -38,16 +38,21 @@ export const Chart = () => {
   };
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
-      <button onClick={addNode} style={{ position: "absolute", zIndex: 10 }}>
-        Add Node
-      </button>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-      />
+    <div className="flex justify-center items-center h-screen">
+      <div className="w-[80vw] h-[80vh] border border-gray-300">
+        <button
+          onClick={addNode}
+          className="absolute top-4 left-4 px-4 py-2 bg-blue-500 text-white rounded shadow hover:bg-blue-600"
+        >
+          Add Node
+        </button>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+        />
+      </div>
     </div>
   );
 };
