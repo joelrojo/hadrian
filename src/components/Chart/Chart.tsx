@@ -1,5 +1,5 @@
 import React from "react";
-import ReactFlow, { MarkerType } from "reactflow";
+import ReactFlow, { MarkerType, useEdgesState, useNodesState } from "reactflow";
 
 import "reactflow/dist/style.css";
 
@@ -25,9 +25,29 @@ const initialEdges = [
 ];
 
 export const Chart = () => {
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const addNode = () => {
+    const newNode = {
+      id: (nodes.length + 1).toString(),
+      position: { x: 0, y: nodes.length * 100 },
+      data: { label: (nodes.length + 1).toString() },
+    };
+    setNodes((nds) => [...nds, newNode]);
+  };
+
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
-      <ReactFlow nodes={initialNodes} edges={initialEdges} />
+      <button onClick={addNode} style={{ position: "absolute", zIndex: 10 }}>
+        Add Node
+      </button>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+      />
     </div>
   );
 };
