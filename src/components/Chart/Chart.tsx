@@ -170,11 +170,23 @@ export const Chart = () => {
 
         updatedNodes = updatedNodes.map((node) => {
           if (connectedNodes.includes(node.id)) {
+            // Check if all source nodes are completed before activating this node
+            const allSourcesCompleted = edges
+              .filter((edge) => edge.target === node.id)
+              .every((edge) =>
+                updatedNodes.find(
+                  (n) => n.id === edge.source && n.data.completed
+                )
+              );
+
             return {
               ...node,
               data: {
                 ...node.data,
-                active: !node.data.completed && !node.data.active, // Activate only if not completed
+                active:
+                  allSourcesCompleted &&
+                  !node.data.completed &&
+                  !node.data.active, // Activate only if not completed and all prerequisites are met
               },
             };
           }
